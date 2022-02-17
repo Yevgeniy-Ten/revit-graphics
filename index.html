@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body {
+            background: #cecece;
+        }
+
+        .container {
+            margin: 0 auto;
+            max-width: 1124px;
+        }
+
+        .graph {
+            display: flex;
+            min-height: 300px;
+            position: relative;
+            color: #75828A;
+        }
+
+        .graph__container {
+            padding: 55px;
+            background: #fff;
+        }
+
+        .graph__vertical, .graph__horizontal {
+            position: absolute;
+            display: flex;
+            justify-content: space-between;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .graph__line-vertical {
+            width: 1px;
+            background: #E0E0E0;
+            position: relative;
+        }
+
+        .graph__horizontal {
+            flex-direction: column;
+        }
+
+        .graph__line-horizontal {
+            background: #E0E0E0;
+            height: 1px;
+            width: 100%;
+            position: relative;
+        }
+
+        .graph__line-horizontal::before {
+            content: "";
+            position: absolute;
+            left: -8px;
+            background-color: #75828A;
+            width: 8px;
+            height: 1px;
+        }
+
+        .graph__line-vertical::after {
+            content: "";
+            background-color: #75828A;
+            position: absolute;
+            height: 8px;
+            width: 1px;
+            bottom: -8px;
+        }
+
+        .graph__line-vertical:first-of-type .graph__line-vertical-result, .graph__line-vertical:first-of-type .graph__result-number {
+            visibility: hidden;
+            opacity: 0;
+        }
+
+        .graph__line-vertical-number {
+            position: absolute;
+            bottom: -30px;
+            left: -34px;
+        }
+
+
+        .graph__line-horizontal-number {
+            position: absolute;
+            left: -48px;
+            top: -14px;
+            text-align: right;
+            width: 36px;
+        }
+
+        .graph__line-vertical-result {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #4DB5FE;
+            border-radius: 50%;
+            position: absolute;
+            left: -11px;
+            background: #fff;
+            z-index: 3;
+            bottom: 0;
+            transition: 0.3s;
+        }
+
+        .graph__linked-line {
+            height: 3px;
+            background: #4DB5FE;
+            position: absolute;
+            transform-origin: 0;
+        }
+
+        .graph__result-number {
+            position: absolute;
+            top: -23px;
+            z-index: 5;
+            left: -13px;
+            width: 45px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .graph__result-warning {
+            color: #F2994A;
+        }
+
+        .graph__result-danger {
+            color: #EB5757;
+        }
+
+        .graph__result-success {
+            color: #27AE60;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="graph__container">
+        <div id="graph" class="graph">
+            <div id="verticalGraph" class="graph__vertical">
+            </div>
+            <div class="graph__horizontal">
+                <div class="graph__line-horizontal"><span class="graph__line-horizontal-number">1000</span></div>
+                <div class="graph__line-horizontal"><span class="graph__line-horizontal-number">750</span></div>
+                <div class="graph__line-horizontal"><span class="graph__line-horizontal-number">500</span></div>
+                <div class="graph__line-horizontal"><span class="graph__line-horizontal-number">250</span></div>
+                <div class="graph__line-horizontal"><span class="graph__line-horizontal-number">0</span></div>
+            </div>
+            <div id="linkedLines" class="graph__linked-lines">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const verticalGraph = document.getElementById("verticalGraph")
+    const linkedLines = document.getElementById("linkedLines")
+    const data = [{
+        date: "",
+        result: 100
+    },
+        {
+            date: new Date().toLocaleDateString(),
+            result: 1000
+        }
+        , {
+            date: new Date().toLocaleDateString(),
+            result: 400
+        }, {
+            date: new Date().toLocaleDateString(),
+            result: 900
+        },
+        {
+            date: new Date().toLocaleDateString(),
+            result: 900
+        },
+        {
+            date: new Date().toLocaleDateString(),
+            result: 250
+        }]
+
+
+    for (let i = 0; i < data.length; i++) {
+        const item = data[i]
+        const verticalParent = document.createElement("div")
+        verticalParent.classList.add("graph__line-vertical")
+        if (item.date) {
+            const dateEl = document.createElement("span")
+            dateEl.classList.add("graph__line-vertical-number")
+            dateEl.innerText = `0${item.date}`
+            verticalParent.appendChild(dateEl)
+        }
+        const circleEl = document.createElement("div");
+        circleEl.classList.add("graph__line-vertical-result")
+        const circlePosition = item.result / 10.9
+        circleEl.style.bottom = `${circlePosition}%`
+        const widthLine = Math.ceil(verticalGraph.offsetWidth / (data.length - 1))
+        if (i < (data.length - 1)) {
+            const height = (circlePosition - (data[i + 1].result / 10.9)) * (verticalGraph.offsetHeight/100)
+            const linkedLineWidth = Math.sqrt(Math.pow(height, 2) + Math.pow(widthLine, 2))
+            const linkedLine = document.createElement("div")
+            const degress = Math.sin(height / (widthLine + 20)) * (180 / Math.PI)
+            linkedLine.classList.add("graph__linked-line")
+            linkedLines.appendChild(linkedLine)
+            linkedLine.style.bottom = `${circlePosition + 2.9}%`
+            linkedLine.style.left = `${i * widthLine}px`
+            linkedLine.style.width = `${linkedLineWidth}px`
+            linkedLine.style.transform = `rotate(${degress}deg)`
+        }
+        const resultDiv = document.createElement("div")
+        resultDiv.innerText = item.result
+        resultDiv.classList.add("graph__result-number")
+        if (item.result > 600) {
+            resultDiv.classList.add("graph__result-success")
+        } else if (item.result < 300) {
+            resultDiv.classList.add("graph__result-warning")
+        } else {
+            resultDiv.classList.add("graph__result-danger")
+        }
+        circleEl.appendChild(resultDiv)
+        verticalParent.appendChild(circleEl)
+        verticalGraph.appendChild(verticalParent)
+    }
+
+</script>
+</body>
+</html>
